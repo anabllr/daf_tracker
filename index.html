@@ -36,6 +36,9 @@
   .bv{background:#E6F1FB;color:#185FA5}
   .bp{background:#FAEEDA;color:#854F0B}
   .bw{background:#EEEDFE;color:#534AB7}
+  .bl{background:#E1F5EE;color:#0F6E56}
+  .bsp{background:#EEEDFE;color:#3C3489}
+  .bh{background:#FBEAF0;color:#993556}
   .bm{background:#F1EFE8;color:#5F5E5A}
   .s-done{color:#3B6D11;font-weight:500}
   .s-prog{color:#854F0B;font-weight:500}
@@ -105,6 +108,9 @@
         <option>Vocabulary</option>
         <option>Pronunciation</option>
         <option>Writing &amp; Reading</option>
+        <option>Listening</option>
+        <option>Speaking</option>
+        <option>Homework</option>
         <option>Mixed</option>
       </select>
       <select id="f-level">
@@ -118,9 +124,9 @@
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
 <script>
-const CATS=['Grammar','Vocabulary','Pronunciation','Writing & Reading','Mixed'];
-const CAT_COLORS={'Grammar':'#639922','Vocabulary':'#378ADD','Pronunciation':'#BA7517','Writing & Reading':'#534AB7','Mixed':'#888780'};
-const BADGES={'Grammar':'bg','Vocabulary':'bv','Pronunciation':'bp','Writing & Reading':'bw','Mixed':'bm'};
+const CATS=['Grammar','Vocabulary','Pronunciation','Writing & Reading','Listening','Speaking','Homework','Mixed'];
+const CAT_COLORS={'Grammar':'#639922','Vocabulary':'#378ADD','Pronunciation':'#BA7517','Writing & Reading':'#534AB7','Listening':'#1D9E75','Speaking':'#7F77DD','Homework':'#D4537E','Mixed':'#888780'};
+const BADGES={'Grammar':'bg','Vocabulary':'bv','Pronunciation':'bp','Writing & Reading':'bw','Listening':'bl','Speaking':'bsp','Homework':'bh','Mixed':'bm'};
 
 let tasks=[
   {id:1,name:'Alphabet & pronunciation basics',cat:'Pronunciation',level:'A1',status:'Done'},
