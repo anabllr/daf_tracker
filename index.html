@@ -29,9 +29,9 @@
   .bar-fill{height:100%;border-radius:8px;transition:width 0.4s}
   table{width:100%;border-collapse:collapse;font-size:13px}
   th{background:#F1EFE8;color:#5F5E5A;font-weight:500;padding:8px 10px;text-align:left;border-bottom:1px solid #D3D1C7}
-  td{padding:8px 10px;border-bottom:1px solid #D3D1C7;vertical-align:middle}
+  td{padding:8px 10px;border-bottom:1px solid #D3D1C7;vertical-align:top}
   tr:hover{background:#F9F8F4}
-  .badge{display:inline-block;font-size:11px;padding:2px 8px;border-radius:6px;font-weight:500}
+  .badge{display:inline-block;font-size:11px;padding:2px 7px;border-radius:6px;font-weight:500;margin:1px 2px 1px 0}
   .bg{background:#EAF3DE;color:#3B6D11}
   .bv{background:#E6F1FB;color:#185FA5}
   .bp{background:#FAEEDA;color:#854F0B}
@@ -48,9 +48,27 @@
   .btn-add{padding:6px 14px;border:1px solid #888780;border-radius:8px;background:#fff;color:#2C2C2A;cursor:pointer;font-size:13px;margin-top:12px}
   .btn-add:hover{background:#F1EFE8}
   .add-form{display:none;background:#F1EFE8;border-radius:10px;padding:1rem;margin-top:10px}
-  .form-row{display:grid;grid-template-columns:2fr 1fr 1fr;gap:8px;margin-bottom:8px}
-  .form-row input,.form-row select{padding:6px 8px;border:1px solid #B4B2A9;border-radius:6px;background:#fff;color:#2C2C2A;font-size:13px}
+  .form-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:8px}
+  .form-full{margin-bottom:8px}
+  .form-grid input,.form-grid select,.form-full input,.form-full textarea{padding:6px 8px;border:1px solid #B4B2A9;border-radius:6px;background:#fff;color:#2C2C2A;font-size:13px;width:100%}
+  .form-full textarea{resize:vertical;min-height:60px;font-family:Arial,sans-serif}
+  .form-label{font-size:12px;color:#5F5E5A;margin-bottom:3px;display:block}
   .section-title{font-size:15px;font-weight:500;color:#2C2C2A;margin-bottom:1rem;padding-bottom:8px;border-bottom:1px solid #D3D1C7}
+  .cat-select{display:flex;flex-wrap:wrap;gap:6px;margin-top:4px}
+  .cat-check{display:flex;align-items:center;gap:4px;font-size:12px;cursor:pointer;padding:3px 8px;border:1px solid #B4B2A9;border-radius:6px;background:#fff;user-select:none}
+  .cat-check input{margin:0;cursor:pointer}
+  .cat-check.selected{border-color:#378ADD;background:#E6F1FB}
+  .subtasks{font-size:12px;color:#5F5E5A;margin-top:4px}
+  .subtask-item{display:flex;align-items:center;gap:6px;margin-top:3px}
+  .subtask-item input[type=checkbox]{cursor:pointer}
+  .due-date{font-size:11px;color:#888780;margin-top:3px}
+  .due-overdue{color:#A32D2D;font-weight:500}
+  .comment{font-size:12px;color:#5F5E5A;font-style:italic;margin-top:4px;border-left:2px solid #D3D1C7;padding-left:6px}
+  .expand-btn{font-size:11px;color:#378ADD;cursor:pointer;background:none;border:none;padding:0;margin-top:4px}
+  .detail-panel{display:none;background:#F9F8F4;border-radius:6px;padding:8px;margin-top:6px;font-size:12px}
+  .subtask-add{display:flex;gap:6px;margin-top:6px}
+  .subtask-add input{flex:1;padding:4px 6px;border:1px solid #B4B2A9;border-radius:6px;font-size:12px}
+  .subtask-add button{padding:4px 8px;font-size:11px;border:1px solid #B4B2A9;border-radius:6px;background:#fff;cursor:pointer}
 </style>
 </head>
 <body>
@@ -90,32 +108,43 @@
   <table>
     <thead>
       <tr>
-        <th style="width:36%">Task</th>
-        <th style="width:16%">Category</th>
-        <th style="width:12%">Level</th>
-        <th style="width:16%">Status</th>
-        <th style="width:20%">Actions</th>
+        <th style="width:28%">Task</th>
+        <th style="width:24%">Categories</th>
+        <th style="width:10%">Level</th>
+        <th style="width:12%">Due date</th>
+        <th style="width:13%">Status</th>
+        <th style="width:13%">Actions</th>
       </tr>
     </thead>
     <tbody id="taskBody"></tbody>
   </table>
   <button class="btn-add" onclick="toggleForm()">+ Add task</button>
   <div class="add-form" id="addForm">
-    <div class="form-row">
-      <input type="text" id="f-name" placeholder="Task name (e.g. Accusative case)">
-      <select id="f-cat">
-        <option>Grammar</option>
-        <option>Vocabulary</option>
-        <option>Pronunciation</option>
-        <option>Writing &amp; Reading</option>
-        <option>Listening</option>
-        <option>Speaking</option>
-        <option>Homework</option>
-        <option>Mixed</option>
-      </select>
-      <select id="f-level">
-        <option>A1</option><option>A2</option><option>B1</option><option>B2</option>
-      </select>
+    <div class="form-full">
+      <label class="form-label">Task name</label>
+      <input type="text" id="f-name" placeholder="e.g. Accusative case">
+    </div>
+    <div class="form-full">
+      <label class="form-label">Categories (select one or more)</label>
+      <div class="cat-select" id="f-cats"></div>
+    </div>
+    <div class="form-grid">
+      <div>
+        <label class="form-label">Level</label>
+        <select id="f-level"><option>A1</option><option>A2</option><option>B1</option><option>B2</option></select>
+      </div>
+      <div>
+        <label class="form-label">Due date</label>
+        <input type="date" id="f-due">
+      </div>
+    </div>
+    <div class="form-full">
+      <label class="form-label">Comment / notes</label>
+      <textarea id="f-comment" placeholder="e.g. Focus on weak points, use exercise sheet 3..."></textarea>
+    </div>
+    <div class="form-full">
+      <label class="form-label">Subtasks (one per line)</label>
+      <textarea id="f-subtasks" placeholder="e.g. Read page 12&#10;Do exercise 4&#10;Review flashcards"></textarea>
     </div>
     <button class="btn-add" onclick="addTask()">Add task</button>
     <button class="btn-sm" onclick="toggleForm()" style="margin-left:8px">Cancel</button>
@@ -129,23 +158,40 @@ const CAT_COLORS={'Grammar':'#639922','Vocabulary':'#378ADD','Pronunciation':'#B
 const BADGES={'Grammar':'bg','Vocabulary':'bv','Pronunciation':'bp','Writing & Reading':'bw','Listening':'bl','Speaking':'bsp','Homework':'bh','Mixed':'bm'};
 
 let tasks=[
-  {id:1,name:'Alphabet & pronunciation basics',cat:'Pronunciation',level:'A1',status:'Done'},
-  {id:2,name:'Basic greetings & introductions',cat:'Vocabulary',level:'A1',status:'Done'},
-  {id:3,name:'Numbers, dates & time',cat:'Vocabulary',level:'A1',status:'Done'},
-  {id:4,name:'Nouns & articles (der/die/das)',cat:'Grammar',level:'A1',status:'In progress'},
-  {id:5,name:'Personal pronouns & verb conjugation',cat:'Grammar',level:'A1',status:'In progress'},
-  {id:6,name:'Reading short texts',cat:'Writing & Reading',level:'A1',status:'To do'},
-  {id:7,name:'Nominative case',cat:'Grammar',level:'A1',status:'To do'},
-  {id:8,name:'Accusative case',cat:'Grammar',level:'A2',status:'To do'},
-  {id:9,name:'Dative case',cat:'Grammar',level:'A2',status:'To do'},
-  {id:10,name:'Common adjectives & word order',cat:'Vocabulary',level:'A2',status:'To do'},
-  {id:11,name:'Writing simple sentences & emails',cat:'Writing & Reading',level:'A2',status:'To do'},
-  {id:12,name:'Separable & modal verbs',cat:'Grammar',level:'A2',status:'To do'},
+  {id:1,name:'Alphabet & pronunciation basics',cats:['Pronunciation'],level:'A1',status:'Done',due:'',comment:'',subtasks:[]},
+  {id:2,name:'Basic greetings & introductions',cats:['Vocabulary','Speaking'],level:'A1',status:'Done',due:'',comment:'',subtasks:[]},
+  {id:3,name:'Numbers, dates & time',cats:['Vocabulary'],level:'A1',status:'Done',due:'',comment:'',subtasks:[]},
+  {id:4,name:'Nouns & articles (der/die/das)',cats:['Grammar'],level:'A1',status:'In progress',due:'2026-03-20',comment:'Use colour-coding flashcards',subtasks:[{text:'Read chapter 2',done:false},{text:'Do exercise 3',done:true}]},
+  {id:5,name:'Personal pronouns & verb conjugation',cats:['Grammar'],level:'A1',status:'In progress',due:'2026-03-25',comment:'',subtasks:[]},
+  {id:6,name:'Reading short texts',cats:['Writing & Reading','Listening'],level:'A1',status:'To do',due:'',comment:'',subtasks:[]},
+  {id:7,name:'Nominative case',cats:['Grammar'],level:'A1',status:'To do',due:'',comment:'',subtasks:[]},
+  {id:8,name:'Accusative case',cats:['Grammar'],level:'A2',status:'To do',due:'',comment:'',subtasks:[]},
+  {id:9,name:'Dative case',cats:['Grammar'],level:'A2',status:'To do',due:'',comment:'',subtasks:[]},
+  {id:10,name:'Common adjectives & word order',cats:['Vocabulary'],level:'A2',status:'To do',due:'',comment:'',subtasks:[]},
+  {id:11,name:'Writing simple sentences & emails',cats:['Writing & Reading','Homework'],level:'A2',status:'To do',due:'',comment:'',subtasks:[]},
+  {id:12,name:'Separable & modal verbs',cats:['Grammar'],level:'A2',status:'To do',due:'',comment:'',subtasks:[]},
 ];
 let nextId=13;
 let manualMode=false;
 let manualPct=0;
 let donutChart=null;
+let openDetails={};
+
+function buildCatSelects(){
+  const c=document.getElementById('f-cats');
+  c.innerHTML='';
+  CATS.forEach(cat=>{
+    const div=document.createElement('div');
+    div.className='cat-check';
+    div.innerHTML=`<input type="checkbox" id="fc-${cat}" value="${cat}"> <label for="fc-${cat}" style="cursor:pointer">${cat}</label>`;
+    div.querySelector('input').addEventListener('change',function(){div.classList.toggle('selected',this.checked);});
+    c.appendChild(div);
+  });
+}
+
+function getSelectedCats(){
+  return CATS.filter(c=>document.getElementById('fc-'+c)?.checked);
+}
 
 function cycleStatus(id){
   const t=tasks.find(x=>x.id===id);
@@ -153,27 +199,58 @@ function cycleStatus(id){
   t.status=t.status==='To do'?'In progress':t.status==='In progress'?'Done':'To do';
   render();
 }
-function removeTask(id){tasks=tasks.filter(x=>x.id!==id);render();}
+function removeTask(id){tasks=tasks.filter(x=>x.id!==id);delete openDetails[id];render();}
 function toggleForm(){const f=document.getElementById('addForm');f.style.display=f.style.display==='block'?'none':'block';}
+function toggleDetail(id){openDetails[id]=!openDetails[id];render();}
+
+function addSubtask(id){
+  const inp=document.getElementById('sub-inp-'+id);
+  const val=inp.value.trim();
+  if(!val)return;
+  const t=tasks.find(x=>x.id===id);
+  t.subtasks.push({text:val,done:false});
+  inp.value='';
+  render();
+}
+function toggleSubtask(id,i){
+  const t=tasks.find(x=>x.id===id);
+  t.subtasks[i].done=!t.subtasks[i].done;
+  render();
+}
+
 function addTask(){
   const n=document.getElementById('f-name').value.trim();
   if(!n)return;
-  tasks.push({id:nextId++,name:n,cat:document.getElementById('f-cat').value,level:document.getElementById('f-level').value,status:'To do'});
+  const cats=getSelectedCats();
+  const subtaskRaw=document.getElementById('f-subtasks').value.trim();
+  const subtasks=subtaskRaw?subtaskRaw.split('\n').map(s=>({text:s.trim(),done:false})).filter(s=>s.text):[];
+  tasks.push({
+    id:nextId++,
+    name:n,
+    cats:cats.length?cats:['Mixed'],
+    level:document.getElementById('f-level').value,
+    status:'To do',
+    due:document.getElementById('f-due').value,
+    comment:document.getElementById('f-comment').value.trim(),
+    subtasks
+  });
   document.getElementById('f-name').value='';
+  document.getElementById('f-comment').value='';
+  document.getElementById('f-subtasks').value='';
+  document.getElementById('f-due').value='';
+  document.querySelectorAll('.cat-check input').forEach(cb=>{cb.checked=false;cb.closest('.cat-check').classList.remove('selected');});
   render();
 }
-function applyManual(v){
-  manualPct=parseInt(v);
-  document.getElementById('manualVal').textContent=manualPct+'%';
-  manualMode=true;
-  updateCharts();
-}
+
+function applyManual(v){manualPct=parseInt(v);document.getElementById('manualVal').textContent=manualPct+'%';manualMode=true;updateCharts();}
 function calcPct(){
   if(manualMode)return manualPct;
   const done=tasks.filter(x=>x.status==='Done').length;
   return tasks.length?Math.round(done/tasks.length*100):0;
 }
 function sClass(s){return s==='Done'?'s-done':s==='In progress'?'s-prog':'s-todo';}
+function isOverdue(due){return due&&new Date(due)<new Date()&&new Date(due).toDateString()!==new Date().toDateString();}
+function fmtDate(d){if(!d)return '';const p=d.split('-');return p[2]+'.'+p[1]+'.'+p[0];}
 
 function render(){
   const done=tasks.filter(x=>x.status==='Done').length;
@@ -189,8 +266,31 @@ function render(){
   const tbody=document.getElementById('taskBody');
   tbody.innerHTML='';
   tasks.forEach(t=>{
+    const overdue=isOverdue(t.due)&&t.status!=='Done';
+    const hasMeta=t.comment||t.subtasks.length>0;
+    const isOpen=openDetails[t.id];
+    const badgesHtml=(t.cats||['Mixed']).map(c=>`<span class="badge ${BADGES[c]||'bm'}">${c}</span>`).join('');
+    const dueHtml=t.due?`<div class="due-date ${overdue?'due-overdue':''}">${overdue?'⚠ ':''} ${fmtDate(t.due)}</div>`:'<span style="color:#B4B2A9;font-size:12px">—</span>';
+
+    let detailHtml='';
+    if(isOpen){
+      const commentHtml=t.comment?`<div class="comment">${t.comment}</div>`:'';
+      const subtasksHtml=t.subtasks.length?`<div style="margin-top:6px;font-size:12px;color:#5F5E5A;font-weight:500">Subtasks</div>`+t.subtasks.map((s,i)=>`<div class="subtask-item"><input type="checkbox" ${s.done?'checked':''} onchange="toggleSubtask(${t.id},${i})"><span style="${s.done?'text-decoration:line-through;color:#888780':''}">${s.text}</span></div>`).join(''):'';
+      detailHtml=`<div class="detail-panel" style="display:block">${commentHtml}${subtasksHtml}<div class="subtask-add"><input type="text" id="sub-inp-${t.id}" placeholder="Add subtask..."><button onclick="addSubtask(${t.id})">+ Add</button></div></div>`;
+    }
+
     const tr=document.createElement('tr');
-    tr.innerHTML=`<td>${t.name}</td><td><span class="badge ${BADGES[t.cat]||'bm'}">${t.cat}</span></td><td style="font-size:12px;color:#888780">${t.level}</td><td class="${sClass(t.status)}">${t.status}</td><td><button class="btn-sm" onclick="cycleStatus(${t.id})">Change status</button> <button class="btn-sm" onclick="removeTask(${t.id})" style="color:#888780">&#x2715;</button></td>`;
+    tr.innerHTML=`
+      <td>
+        <div style="font-weight:500">${t.name}</div>
+        ${hasMeta||true?`<button class="expand-btn" onclick="toggleDetail(${t.id})">${isOpen?'▲ Hide details':'▼ Show details'}</button>`:''}
+        ${detailHtml}
+      </td>
+      <td>${badgesHtml}</td>
+      <td style="font-size:12px;color:#888780">${t.level}</td>
+      <td>${dueHtml}</td>
+      <td class="${sClass(t.status)}">${t.status}</td>
+      <td><button class="btn-sm" onclick="cycleStatus(${t.id})">Change status</button> <button class="btn-sm" onclick="removeTask(${t.id})" style="color:#888780">&#x2715;</button></td>`;
     tbody.appendChild(tr);
   });
   updateCharts();
@@ -214,7 +314,7 @@ function updateCharts(){
   const catBar=document.getElementById('cat-bars');
   catBar.innerHTML='';
   CATS.forEach(c=>{
-    const ct=tasks.filter(x=>x.cat===c);
+    const ct=tasks.filter(x=>(x.cats||[]).includes(c));
     if(!ct.length)return;
     const p=Math.round(ct.filter(x=>x.status==='Done').length/ct.length*100);
     const col=CAT_COLORS[c];
@@ -222,6 +322,7 @@ function updateCharts(){
   });
 }
 
+buildCatSelects();
 render();
 </script>
 </body>
