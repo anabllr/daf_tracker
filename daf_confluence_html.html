@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DaF Progress Tracker</title>
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:Arial,sans-serif;color:#2C2C2A;background:#fff;padding:1.5rem}
+  h1{font-size:20px;font-weight:500;margin-bottom:1.5rem;color:#2C2C2A}
+  .metric-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:1.5rem}
+  .metric{background:#F1EFE8;border-radius:8px;padding:1rem;text-align:center}
+  .metric-label{font-size:12px;color:#5F5E5A;margin-bottom:4px}
+  .metric-value{font-size:22px;font-weight:500;color:#2C2C2A}
+  .charts-row{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:1.5rem}
+  .chart-card{background:#fff;border:1px solid #D3D1C7;border-radius:12px;padding:1rem}
+  .chart-title{font-size:13px;color:#5F5E5A;margin-bottom:12px}
+  .donut-wrap{position:relative;height:160px;display:flex;align-items:center;justify-content:center}
+  #donut-center{position:absolute;text-align:center;pointer-events:none}
+  .donut-pct{font-size:22px;font-weight:500;color:#2C2C2A}
+  .donut-sub{font-size:11px;color:#5F5E5A}
+  .manual-row{display:flex;align-items:center;gap:10px;margin-top:10px}
+  .manual-row label{font-size:12px;color:#5F5E5A;white-space:nowrap}
+  .manual-row input[type=range]{flex:1}
+  .manual-val{font-size:13px;color:#2C2C2A;min-width:32px}
+  .cat-row{margin-bottom:12px}
+  .cat-label{display:flex;justify-content:space-between;font-size:12px;color:#5F5E5A;margin-bottom:4px}
+  .bar-bg{height:12px;background:#F1EFE8;border-radius:8px;overflow:hidden}
+  .bar-fill{height:100%;border-radius:8px;transition:width 0.4s}
+  table{width:100%;border-collapse:collapse;font-size:13px}
+  th{background:#F1EFE8;color:#5F5E5A;font-weight:500;padding:8px 10px;text-align:left;border-bottom:1px solid #D3D1C7}
+  td{padding:8px 10px;border-bottom:1px solid #D3D1C7;vertical-align:middle}
+  tr:hover{background:#F9F8F4}
+  .badge{display:inline-block;font-size:11px;padding:2px 8px;border-radius:6px;font-weight:500}
+  .bg{background:#EAF3DE;color:#3B6D11}
+  .bv{background:#E6F1FB;color:#185FA5}
+  .bp{background:#FAEEDA;color:#854F0B}
+  .bw{background:#EEEDFE;color:#534AB7}
+  .bm{background:#F1EFE8;color:#5F5E5A}
+  .s-done{color:#3B6D11;font-weight:500}
+  .s-prog{color:#854F0B;font-weight:500}
+  .s-todo{color:#888780}
+  .btn-sm{font-size:11px;padding:3px 9px;border:1px solid #B4B2A9;border-radius:6px;background:#fff;color:#2C2C2A;cursor:pointer}
+  .btn-sm:hover{background:#F1EFE8}
+  .btn-add{padding:6px 14px;border:1px solid #888780;border-radius:8px;background:#fff;color:#2C2C2A;cursor:pointer;font-size:13px;margin-top:12px}
+  .btn-add:hover{background:#F1EFE8}
+  .add-form{display:none;background:#F1EFE8;border-radius:10px;padding:1rem;margin-top:10px}
+  .form-row{display:grid;grid-template-columns:2fr 1fr 1fr;gap:8px;margin-bottom:8px}
+  .form-row input,.form-row select{padding:6px 8px;border:1px solid #B4B2A9;border-radius:6px;background:#fff;color:#2C2C2A;font-size:13px}
+  .section-title{font-size:15px;font-weight:500;color:#2C2C2A;margin-bottom:1rem;padding-bottom:8px;border-bottom:1px solid #D3D1C7}
+</style>
+</head>
+<body>
+<h1>DaF Lesson Progress Tracker</h1>
+
+<div class="metric-grid">
+  <div class="metric"><div class="metric-label">Total tasks</div><div class="metric-value" id="m-total">0</div></div>
+  <div class="metric"><div class="metric-label">Completed</div><div class="metric-value" id="m-done">0</div></div>
+  <div class="metric"><div class="metric-label">In progress</div><div class="metric-value" id="m-prog">0</div></div>
+  <div class="metric"><div class="metric-label">Overall progress</div><div class="metric-value" id="m-pct">0%</div></div>
+</div>
+
+<div class="charts-row">
+  <div class="chart-card">
+    <div class="chart-title">Overall progress</div>
+    <div class="donut-wrap">
+      <canvas id="donutChart" width="160" height="160"></canvas>
+      <div id="donut-center">
+        <div class="donut-pct" id="d-pct">0%</div>
+        <div class="donut-sub">done</div>
+      </div>
+    </div>
+    <div class="manual-row">
+      <label>Manual override:</label>
+      <input type="range" min="0" max="100" step="1" id="manualSlider" value="0" oninput="applyManual(this.value)">
+      <span class="manual-val" id="manualVal">0%</span>
+    </div>
+  </div>
+  <div class="chart-card">
+    <div class="chart-title">Progress by category</div>
+    <div id="cat-bars"></div>
+  </div>
+</div>
+
+<div>
+  <div class="section-title">Task board</div>
+  <table>
+    <thead>
+      <tr>
+        <th style="width:36%">Task</th>
+        <th style="width:16%">Category</th>
+        <th style="width:12%">Level</th>
+        <th style="width:16%">Status</th>
+        <th style="width:20%">Actions</th>
+      </tr>
+    </thead>
+    <tbody id="taskBody"></tbody>
+  </table>
+  <button class="btn-add" onclick="toggleForm()">+ Add task</button>
+  <div class="add-form" id="addForm">
+    <div class="form-row">
+      <input type="text" id="f-name" placeholder="Task name (e.g. Accusative case)">
+      <select id="f-cat">
+        <option>Grammar</option>
+        <option>Vocabulary</option>
+        <option>Pronunciation</option>
+        <option>Writing &amp; Reading</option>
+        <option>Mixed</option>
+      </select>
+      <select id="f-level">
+        <option>A1</option><option>A2</option><option>B1</option><option>B2</option>
+      </select>
+    </div>
+    <button class="btn-add" onclick="addTask()">Add task</button>
+    <button class="btn-sm" onclick="toggleForm()" style="margin-left:8px">Cancel</button>
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<script>
+const CATS=['Grammar','Vocabulary','Pronunciation','Writing & Reading','Mixed'];
+const CAT_COLORS={'Grammar':'#639922','Vocabulary':'#378ADD','Pronunciation':'#BA7517','Writing & Reading':'#534AB7','Mixed':'#888780'};
+const BADGES={'Grammar':'bg','Vocabulary':'bv','Pronunciation':'bp','Writing & Reading':'bw','Mixed':'bm'};
+
+let tasks=[
+  {id:1,name:'Alphabet & pronunciation basics',cat:'Pronunciation',level:'A1',status:'Done'},
+  {id:2,name:'Basic greetings & introductions',cat:'Vocabulary',level:'A1',status:'Done'},
+  {id:3,name:'Numbers, dates & time',cat:'Vocabulary',level:'A1',status:'Done'},
+  {id:4,name:'Nouns & articles (der/die/das)',cat:'Grammar',level:'A1',status:'In progress'},
+  {id:5,name:'Personal pronouns & verb conjugation',cat:'Grammar',level:'A1',status:'In progress'},
+  {id:6,name:'Reading short texts',cat:'Writing & Reading',level:'A1',status:'To do'},
+  {id:7,name:'Nominative case',cat:'Grammar',level:'A1',status:'To do'},
+  {id:8,name:'Accusative case',cat:'Grammar',level:'A2',status:'To do'},
+  {id:9,name:'Dative case',cat:'Grammar',level:'A2',status:'To do'},
+  {id:10,name:'Common adjectives & word order',cat:'Vocabulary',level:'A2',status:'To do'},
+  {id:11,name:'Writing simple sentences & emails',cat:'Writing & Reading',level:'A2',status:'To do'},
+  {id:12,name:'Separable & modal verbs',cat:'Grammar',level:'A2',status:'To do'},
+];
+let nextId=13;
+let manualMode=false;
+let manualPct=0;
+let donutChart=null;
+
+function cycleStatus(id){
+  const t=tasks.find(x=>x.id===id);
+  if(!t)return;
+  t.status=t.status==='To do'?'In progress':t.status==='In progress'?'Done':'To do';
+  render();
+}
+function removeTask(id){tasks=tasks.filter(x=>x.id!==id);render();}
+function toggleForm(){const f=document.getElementById('addForm');f.style.display=f.style.display==='block'?'none':'block';}
+function addTask(){
+  const n=document.getElementById('f-name').value.trim();
+  if(!n)return;
+  tasks.push({id:nextId++,name:n,cat:document.getElementById('f-cat').value,level:document.getElementById('f-level').value,status:'To do'});
+  document.getElementById('f-name').value='';
+  render();
+}
+function applyManual(v){
+  manualPct=parseInt(v);
+  document.getElementById('manualVal').textContent=manualPct+'%';
+  manualMode=true;
+  updateCharts();
+}
+function calcPct(){
+  if(manualMode)return manualPct;
+  const done=tasks.filter(x=>x.status==='Done').length;
+  return tasks.length?Math.round(done/tasks.length*100):0;
+}
+function sClass(s){return s==='Done'?'s-done':s==='In progress'?'s-prog':'s-todo';}
+
+function render(){
+  const done=tasks.filter(x=>x.status==='Done').length;
+  const prog=tasks.filter(x=>x.status==='In progress').length;
+  document.getElementById('m-total').textContent=tasks.length;
+  document.getElementById('m-done').textContent=done;
+  document.getElementById('m-prog').textContent=prog;
+  if(!manualMode){
+    const p=tasks.length?Math.round(done/tasks.length*100):0;
+    document.getElementById('manualSlider').value=p;
+    document.getElementById('manualVal').textContent=p+'%';
+  }
+  const tbody=document.getElementById('taskBody');
+  tbody.innerHTML='';
+  tasks.forEach(t=>{
+    const tr=document.createElement('tr');
+    tr.innerHTML=`<td>${t.name}</td><td><span class="badge ${BADGES[t.cat]||'bm'}">${t.cat}</span></td><td style="font-size:12px;color:#888780">${t.level}</td><td class="${sClass(t.status)}">${t.status}</td><td><button class="btn-sm" onclick="cycleStatus(${t.id})">Change status</button> <button class="btn-sm" onclick="removeTask(${t.id})" style="color:#888780">&#x2715;</button></td>`;
+    tbody.appendChild(tr);
+  });
+  updateCharts();
+}
+
+function updateCharts(){
+  const pct=calcPct();
+  document.getElementById('m-pct').textContent=pct+'%';
+  document.getElementById('d-pct').textContent=pct+'%';
+  const rem=100-pct;
+  if(!donutChart){
+    donutChart=new Chart(document.getElementById('donutChart'),{
+      type:'doughnut',
+      data:{labels:['Done','Remaining'],datasets:[{data:[pct,rem],backgroundColor:['#1D9E75','#E1F5EE'],borderWidth:0}]},
+      options:{responsive:false,cutout:'70%',plugins:{legend:{display:false},tooltip:{enabled:false}}}
+    });
+  } else {
+    donutChart.data.datasets[0].data=[pct,rem];
+    donutChart.update('none');
+  }
+  const catBar=document.getElementById('cat-bars');
+  catBar.innerHTML='';
+  CATS.forEach(c=>{
+    const ct=tasks.filter(x=>x.cat===c);
+    if(!ct.length)return;
+    const p=Math.round(ct.filter(x=>x.status==='Done').length/ct.length*100);
+    const col=CAT_COLORS[c];
+    catBar.innerHTML+=`<div class="cat-row"><div class="cat-label"><span>${c}</span><span>${p}%</span></div><div class="bar-bg"><div class="bar-fill" style="width:${p}%;background:${col}"></div></div></div>`;
+  });
+}
+
+render();
+</script>
+</body>
+</html>
